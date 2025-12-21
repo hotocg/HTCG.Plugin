@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <!--<Nullable>enable</Nullable>-->
+    <!--<ImplicitUsings>enable</ImplicitUsings>-->
+    <UseWPF>true</UseWPF>
+    
+    <!--<DisableFody>true</DisableFody>-->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="FodyWeavers.xml" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <!--<WeaverFiles Include="$(MsBuildThisFileDirectory)..\HTCG.Mvvm.Fody\bin\Debug\netstandard2.0\HTCG.Mvvm.Fody.dll" />-->
+    <WeaverFiles Include="$(MsBuildThisFileDirectory)..\HTCG.Plugin.Fody\bin\Debug\netstandard2.0\HTCG.Plugin.Fody.dll" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Fody" Version="5.2.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\HTCG.Plugin.Analyzer\HTCG.Plugin.Analyzer.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\HTCG.Plugin.Fody\HTCG.Plugin.Fody.csproj" />
+    <ProjectReference Include="..\HTCG.Plugin\HTCG.Plugin.csproj" />
+  </ItemGroup>
+
+</Project>

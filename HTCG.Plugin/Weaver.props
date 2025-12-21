@@ -1,0 +1,6 @@
+﻿<Project>
+  <ItemGroup>
+    <WeaverFiles Include="$(MsBuildThisFileDirectory)..\weaver\$(MSBuildThisFileName).dll" />
+    <CompilerVisibleProperty Include="HTCGPluginAnalyzerConfiguration" />
+  </ItemGroup>
+</Project>

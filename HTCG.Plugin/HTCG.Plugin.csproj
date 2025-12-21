@@ -1,0 +1,52 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net40;net8.0-windows;netstandard2.0</TargetFrameworks>
+    <LangVersion>latest</LangVersion>
+    <!--<Nullable>enable</Nullable>-->
+
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>1.1.4</Version>
+    <!--<PackageVersion>1.0.$([System.DateTime]::UtcNow.ToString("MMddHHmmss"))</PackageVersion>-->
+    <Authors>Deva</Authors>
+    <Company>HTCG</Company>
+    <Description>Good Good Study, Day Day Up!</Description>
+    <Copyright>Copyright © 2025</Copyright>
+    <RepositoryUrl>https://github.com/hotocg/HTCG.Plugin.git</RepositoryUrl>
+
+    <!--<PackageIconUrl>https://raw.githubusercontent.com/hotocg/TempAsset/1de3d7a2c13ba2d0d8830f8b6357cbf3538b4630/Images/CrazyFrog.gif</PackageIconUrl>-->
+    <PackageIcon>CrazyFrog.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+
+    <PackageProjectUrl>https://github.com/hotocg/HTCG.Plugin</PackageProjectUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>Mvvm, ILWeaving, Fody, Cecil, AOP</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+
+    <DriveRoot>$([System.IO.Path]::GetPathRoot('$(MSBuildProjectDirectory)'))</DriveRoot>
+    <PackageOutputPath>$(DriveRoot)NuGetLocal</PackageOutputPath>
+
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Fody" Version="5.2.0" PrivateAssets="none" />
+    <PackageReference Include="FodyPackaging" Version="5.2.0" PrivateAssets="All" />
+    <None Include="..\HTCG.Plugin.Analyzer\bin\$(Configuration)\netstandard2.0\HTCG.Plugin.Analyzer.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Resources\CrazyFrog.png" Pack="true" PackagePath="\" />
+    <None Include="..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)'!='netstandard2.0'">
+    <UseWPF>true</UseWPF>
+    <!--<DefineConstants>WPF;$(DefineConstants)</DefineConstants>-->
+  </PropertyGroup>
+  
+  <PropertyGroup>
+    <NoWarn>1591</NoWarn>
+  </PropertyGroup>
+
+  
+</Project>
