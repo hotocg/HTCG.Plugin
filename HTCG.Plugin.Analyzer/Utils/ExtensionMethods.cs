@@ -319,6 +319,32 @@ namespace HTCG.Plugin.Analyzer
         }
 
         /// <summary>
+        /// 从方法的 Attribute 中获取 AllowConcurrentExecutions 的值
+        /// </summary>
+        public static string? GetAllowConcurrentExecutions(this IMethodSymbol method)
+        {
+            bool isAsync = method.IsAsyncTask();
+            if (!isAsync) return null; // 仅异步命令才考虑 AllowConcurrentExecutions
+
+            // 查找 RelayCommandAttribute
+            var attribute = method.GetAttributes().FirstOrDefault(attr => attr.AttributeClass?.Name == "RelayCommandAttribute" || attr.AttributeClass?.Name == "RelayCommand");
+
+            if (attribute == null) return "false";
+
+            // 查找 AllowConcurrentExecutions 命名参数
+            foreach (var namedArg in attribute.NamedArguments)
+            {
+                if (namedArg.Key == "AllowConcurrentExecutions")
+                {
+                    return namedArg.Value.Value?.ToString().ToLower() ?? "false";
+                    //return namedArg.Value.Value as bool? ?? false;
+                }
+            }
+
+            return "false";
+        }
+
+        /// <summary>
         /// 枚举注释
         /// </summary>
         /// <param name="symbol"></param>

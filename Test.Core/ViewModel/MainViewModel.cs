@@ -69,7 +69,7 @@ namespace Test.Core.ViewModel
 
 
 #if !NET20 && !NET30 && !NET35 && !NET40
-        [RelayCommand]
+        [RelayCommand(AllowConcurrentExecutions = true)]
         private async Task AsyncTest(object arg)
         {
             await Task.Delay(1000);

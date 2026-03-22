@@ -6,7 +6,7 @@
     <!--<Nullable>enable</Nullable>-->
 
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.1.4</Version>
+    <Version>1.1.5</Version>
     <!--<PackageVersion>1.0.$([System.DateTime]::UtcNow.ToString("MMddHHmmss"))</PackageVersion>-->
     <Authors>Deva</Authors>
     <Company>HTCG</Company>

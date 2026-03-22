@@ -324,6 +324,7 @@ namespace HTCG.Plugin.Analyzer
                 string typeName = execute.GetCommandPropertyTypeName(env);
                 string execArg = $"new {execute.GetDelegateTypeName(env)}({executeName})";
                 string canArg = canExecute != null ? $"new {canExecute.GetDelegateTypeName(env)}({canExecute.Name})" : "null";
+                string? allowConcurrent = execute.GetAllowConcurrentExecutions();
 
                 // 生成私有字段
                 builder.AppendLine($"/// <inheritdoc cref=\"{executeName}\"/>");
@@ -331,7 +332,7 @@ namespace HTCG.Plugin.Analyzer
 
                 // 生成属性
                 builder.AppendLine($"/// <inheritdoc cref=\"{executeName}\"/>");
-                builder.AppendLine($"public {typeName} {commandName} => {fieldName} ?? ({fieldName} = new {typeName}({execArg}, {canArg}));");
+                builder.AppendLine($"public {typeName} {commandName} => {fieldName} ?? ({fieldName} = new {typeName}({execArg}, {canArg}{(allowConcurrent != null ? $", {allowConcurrent}" : "")}));");
                 builder.AppendLine();
             }
 
@@ -474,35 +475,43 @@ namespace HTCG.Plugin.Analyzer
                 private readonly Func<Task> execute;
                 private readonly Func<bool> canExecute;
                 private bool _isExecuting;
-            
+                private readonly bool _allowConcurrent;
+
                 public event EventHandler CanExecuteChanged;
-            
-                public AsyncRelayCommand(Func<Task> execute, Func<bool> canExecute = null)
+                
+                public AsyncRelayCommand(Func<Task> execute, Func<bool> canExecute = null, bool allowConcurrent = false)
                 {
                     if (execute == null) throw new ArgumentNullException("execute");
                     this.execute = execute;
                     this.canExecute = canExecute;
+                    this._allowConcurrent = allowConcurrent;
                 }
-            
+                
                 public bool CanExecute(object parameter)
                 {
-                    return !_isExecuting && (canExecute == null || canExecute());
+                    return (!_allowConcurrent || !_isExecuting) && (canExecute == null || canExecute());
                 }
             
                 public async void Execute(object parameter)
                 {
                     if (!CanExecute(parameter)) return;
-            
-                    try
+                    if (!_allowConcurrent)
                     {
                         _isExecuting = true;
                         NotifyCanExecuteChanged();
+                    }
+
+                    try
+                    {
                         await execute();
                     }
                     finally
                     {
-                        _isExecuting = false;
-                        NotifyCanExecuteChanged();
+                        if (!_allowConcurrent)
+                        {
+                            _isExecuting = false;
+                            NotifyCanExecuteChanged();
+                        }
                     }
                 }
             
@@ -522,19 +531,21 @@ namespace HTCG.Plugin.Analyzer
                 private readonly Func<T, Task> execute;
                 private readonly Func<T, bool> canExecute;
                 private bool _isExecuting;
-            
+                private readonly bool _allowConcurrent;
+
                 public event EventHandler CanExecuteChanged;
             
-                public AsyncRelayCommand(Func<T, Task> execute, Func<T, bool> canExecute = null)
+                public AsyncRelayCommand(Func<T, Task> execute, Func<T, bool> canExecute = null, bool allowConcurrent = false)
                 {
                     if (execute == null) throw new ArgumentNullException("execute");
                     this.execute = execute;
                     this.canExecute = canExecute;
+                    this._allowConcurrent = allowConcurrent;
                 }
             
                 public bool CanExecute(object parameter)
                 {
-                    if (_isExecuting) return false;
+                    if (!_allowConcurrent && _isExecuting) return false;
             
                     if (parameter is T t) return canExecute == null || canExecute(t);
                     if (parameter == null && !typeof(T).IsValueType) return canExecute == null || canExecute(default(T));
@@ -550,20 +561,27 @@ namespace HTCG.Plugin.Analyzer
                     if (parameter is T param) t = param;
                     else if (parameter == null && !typeof(T).IsValueType) t = default(T);
                     else throw new ArgumentException("参数类型错误，期望类型 " + typeof(T).Name);
-            
-                    try
+
+                    if (!_allowConcurrent)
                     {
                         _isExecuting = true;
                         NotifyCanExecuteChanged();
+                    }
+
+                    try
+                    {
                         await execute(t);
                     }
                     finally
                     {
-                        _isExecuting = false;
-                        NotifyCanExecuteChanged();
+                        if (!_allowConcurrent)
+                        {
+                            _isExecuting = false;
+                            NotifyCanExecuteChanged();
+                        }
                     }
                 }
-            
+                
                 public void NotifyCanExecuteChanged()
                 {
                     var handler = CanExecuteChanged;

@@ -43,5 +43,19 @@ namespace HTCG.Plugin.Mvvm
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
     public sealed class RelayCommandAttribute : Attribute
     {
+        //public string? CanExecute { get; set; }
+        /// <summary>
+        /// 是否允许并发执行（仅适用于异步命令），默认为 false
+        /// </summary>
+        public bool AllowConcurrentExecutions { get; set; } = false;
+
+        public RelayCommandAttribute()
+        {
+        }
+
+        //public RelayCommandAttribute(string canExecute)
+        //{
+        //    CanExecute = canExecute;
+        //}
     }
 }
