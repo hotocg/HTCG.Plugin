@@ -27,8 +27,8 @@ namespace Test.Core.ViewModel
         /// 测试文本
         /// <code>Console.WriteLine(123)</code>
         /// </summary>
-        [JsonProperty("_Text_")]
-        [JsonIgnore]
+        [property: JsonProperty("_Text_")]
+        [property: JsonIgnore]
         [ObservableProperty]
         private string text = "Hello World!";
 

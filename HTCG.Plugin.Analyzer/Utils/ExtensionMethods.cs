@@ -202,6 +202,57 @@ namespace HTCG.Plugin.Analyzer
         }
 
         /// <summary>
+        /// 获取字段声明上显式以 property 为目标的特性文本，例如 [property: JsonIgnore]
+        /// </summary>
+        /// <param name="field"></param>
+        /// <returns></returns>
+        public static IEnumerable<string> GetPropertyTargetedAttributeTexts(this IFieldSymbol field)
+        {
+            foreach (var syntaxReference in field.DeclaringSyntaxReferences)
+            {
+                if (syntaxReference.GetSyntax() is not VariableDeclaratorSyntax variable) continue;
+                if (variable.Parent?.Parent is not FieldDeclarationSyntax fieldDeclaration) continue;
+
+                foreach (var attributeList in fieldDeclaration.AttributeLists)
+                {
+                    var target = attributeList.Target?.Identifier.ValueText;
+                    if (!string.Equals(target, "property", StringComparison.Ordinal)) continue;
+
+                    foreach (var attribute in attributeList.Attributes)
+                    {
+                        yield return attribute.ToString();
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// 获取字段所在源码文件的 using 指令
+        /// </summary>
+        /// <param name="fields"></param>
+        /// <returns></returns>
+        public static IEnumerable<string> GetUsingDirectiveTexts(this IEnumerable<IFieldSymbol> fields)
+        {
+            var usings = new HashSet<string>(StringComparer.Ordinal);
+
+            foreach (var field in fields)
+            {
+                foreach (var syntaxReference in field.DeclaringSyntaxReferences)
+                {
+                    var root = syntaxReference.SyntaxTree.GetRoot();
+                    foreach (var usingDirective in root.DescendantNodes().OfType<UsingDirectiveSyntax>())
+                    {
+                        var text = usingDirective.ToFullString().Trim();
+                        if (!string.IsNullOrWhiteSpace(text) && usings.Add(text))
+                        {
+                            yield return text;
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// 获取特性的完整字符串
         /// </summary>
         /// <param name="attr"></param>

@@ -197,8 +197,11 @@ namespace HTCG.Plugin.Analyzer
                 var (fields, commands, existingMembers) = classSymbol.GetMemberData(envSymbols.ObservableAttr, envSymbols.CommandAttr);
                 if (fields.Count == 0 && commands.Count == 0) return string.Empty;
 
-                // 添加命名空间
-                //builder.AppendLine(GetAllUsing(fields));
+                // 添加原文件 using，以支持 [property: JsonIgnore] 这类短名称特性转发
+                foreach (var usingDirective in fields.GetUsingDirectiveTexts())
+                {
+                    builder.AppendLine(usingDirective);
+                }
                 builder.AppendLine();
 
                 using (builder.Namespace(classSymbol.ContainingNamespace.ToDisplayString()))
@@ -278,10 +281,10 @@ namespace HTCG.Plugin.Analyzer
                 //}
                 builder.AppendLine($"/// <inheritdoc cref=\"{fieldName}\"/>");
 
-                // 其他特性
-                foreach (var attr in field.GetAttributes(envSymbols.ObservableAttr))
+                // 显式转发到生成属性的特性，例如 [property: JsonIgnore]
+                foreach (var attrText in field.GetPropertyTargetedAttributeTexts())
                 {
-                    builder.AppendLine($"[{attr.GetFullAttributeText()}]");
+                    builder.AppendLine($"[{attrText}]");
                 }
 
                 // 属性
