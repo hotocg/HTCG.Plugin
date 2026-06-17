@@ -35,6 +35,7 @@ namespace Test.Core.ViewModel
         /// <summary>
         /// 测试命令
         /// </summary>
+        [property: JsonIgnore]
         [RelayCommand]
         private void Test(object arg)
         {

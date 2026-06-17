@@ -8,18 +8,18 @@ using System.Linq;
 namespace HTCG.Plugin.Analyzer
 {
     /// <summary>
-    /// Suppresses CS0657 for [property: ...] attributes on ObservableProperty fields.
+    /// Suppresses CS0657 for [property: ...] attributes that are forwarded by source generators.
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class FieldWithPropertyTargetedAttributeDiagnosticSuppressor : DiagnosticSuppressor
     {
-        private static readonly SuppressionDescriptor PropertyTargetedAttributeOnObservablePropertyField = new(
+        private static readonly SuppressionDescriptor PropertyTargetedAttributeOnGeneratedPropertySource = new(
             "HTCGSP0001",
             "CS0657",
-            "ObservableProperty fields support forwarding explicitly property-targeted attributes to the generated property.");
+            "This member supports forwarding explicitly property-targeted attributes to the generated property.");
 
         public override ImmutableArray<SuppressionDescriptor> SupportedSuppressions =>
-            ImmutableArray.Create(PropertyTargetedAttributeOnObservablePropertyField);
+            ImmutableArray.Create(PropertyTargetedAttributeOnGeneratedPropertySource);
 
         public override void ReportSuppressions(SuppressionAnalysisContext context)
         {
@@ -39,22 +39,31 @@ namespace HTCG.Plugin.Analyzer
                 var target = attributeList.Target?.Identifier.ValueText;
                 if (!string.Equals(target, "property", StringComparison.Ordinal)) continue;
 
-                if (attributeList.Parent is not FieldDeclarationSyntax fieldDeclaration) continue;
-                if (!HasObservablePropertyAttribute(fieldDeclaration)) continue;
+                if (!IsSupportedGeneratedPropertySource(attributeList.Parent)) continue;
 
-                context.ReportSuppression(Suppression.Create(PropertyTargetedAttributeOnObservablePropertyField, diagnostic));
+                context.ReportSuppression(Suppression.Create(PropertyTargetedAttributeOnGeneratedPropertySource, diagnostic));
             }
         }
 
-        private static bool HasObservablePropertyAttribute(FieldDeclarationSyntax fieldDeclaration)
+        private static bool IsSupportedGeneratedPropertySource(SyntaxNode? node)
         {
-            foreach (var attributeList in fieldDeclaration.AttributeLists)
+            return node switch
+            {
+                FieldDeclarationSyntax fieldDeclaration => HasAttribute(fieldDeclaration.AttributeLists, "ObservableProperty"),
+                MethodDeclarationSyntax methodDeclaration => HasAttribute(methodDeclaration.AttributeLists, "RelayCommand"),
+                _ => false
+            };
+        }
+
+        private static bool HasAttribute(SyntaxList<AttributeListSyntax> attributeLists, string attributeName)
+        {
+            foreach (var attributeList in attributeLists)
             {
                 foreach (var attribute in attributeList.Attributes)
                 {
                     var name = attribute.Name.ToString();
-                    if (name.EndsWith("ObservableProperty", StringComparison.Ordinal) ||
-                        name.EndsWith("ObservablePropertyAttribute", StringComparison.Ordinal))
+                    if (name.EndsWith(attributeName, StringComparison.Ordinal) ||
+                        name.EndsWith(attributeName + "Attribute", StringComparison.Ordinal))
                     {
                         return true;
                     }

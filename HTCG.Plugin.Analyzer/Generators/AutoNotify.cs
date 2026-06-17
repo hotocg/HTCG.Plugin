@@ -198,7 +198,7 @@ namespace HTCG.Plugin.Analyzer
                 if (fields.Count == 0 && commands.Count == 0) return string.Empty;
 
                 // 添加原文件 using，以支持 [property: JsonIgnore] 这类短名称特性转发
-                foreach (var usingDirective in fields.GetUsingDirectiveTexts())
+                foreach (var usingDirective in fields.Cast<ISymbol>().Concat(commands.Select(c => c.Execute)).GetUsingDirectiveTexts())
                 {
                     builder.AppendLine(usingDirective);
                 }
@@ -335,6 +335,10 @@ namespace HTCG.Plugin.Analyzer
 
                 // 生成属性
                 builder.AppendLine($"/// <inheritdoc cref=\"{executeName}\"/>");
+                foreach (var attrText in execute.GetPropertyTargetedAttributeTexts())
+                {
+                    builder.AppendLine($"[{attrText}]");
+                }
                 builder.AppendLine($"public {typeName} {commandName} => {fieldName} ?? ({fieldName} = new {typeName}({execArg}, {canArg}{(allowConcurrent != null ? $", {allowConcurrent}" : "")}));");
                 builder.AppendLine();
             }

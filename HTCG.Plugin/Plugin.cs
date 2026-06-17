@@ -32,7 +32,7 @@ namespace HTCG.Plugin.Mvvm
     /// <summary>
     /// 可观察属性特性，自动实现 OnPropertyChanged
     /// </summary>
-    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false)]
+    [AttributeUsage(AttributeTargets.Field, AllowMultiple = false)]
     public sealed class ObservablePropertyAttribute : Attribute
     {
     }

@@ -202,18 +202,23 @@ namespace HTCG.Plugin.Analyzer
         }
 
         /// <summary>
-        /// 获取字段声明上显式以 property 为目标的特性文本，例如 [property: JsonIgnore]
+        /// 获取成员声明上显式以 property 为目标的特性文本，例如 [property: JsonIgnore]
         /// </summary>
-        /// <param name="field"></param>
+        /// <param name="symbol"></param>
         /// <returns></returns>
-        public static IEnumerable<string> GetPropertyTargetedAttributeTexts(this IFieldSymbol field)
+        public static IEnumerable<string> GetPropertyTargetedAttributeTexts(this ISymbol symbol)
         {
-            foreach (var syntaxReference in field.DeclaringSyntaxReferences)
+            foreach (var syntaxReference in symbol.DeclaringSyntaxReferences)
             {
-                if (syntaxReference.GetSyntax() is not VariableDeclaratorSyntax variable) continue;
-                if (variable.Parent?.Parent is not FieldDeclarationSyntax fieldDeclaration) continue;
+                var syntax = syntaxReference.GetSyntax();
+                var attributeLists = syntax switch
+                {
+                    VariableDeclaratorSyntax variable when variable.Parent?.Parent is FieldDeclarationSyntax fieldDeclaration => fieldDeclaration.AttributeLists,
+                    MethodDeclarationSyntax methodDeclaration => methodDeclaration.AttributeLists,
+                    _ => default
+                };
 
-                foreach (var attributeList in fieldDeclaration.AttributeLists)
+                foreach (var attributeList in attributeLists)
                 {
                     var target = attributeList.Target?.Identifier.ValueText;
                     if (!string.Equals(target, "property", StringComparison.Ordinal)) continue;
@@ -227,17 +232,17 @@ namespace HTCG.Plugin.Analyzer
         }
 
         /// <summary>
-        /// 获取字段所在源码文件的 using 指令
+        /// 获取成员所在源码文件的 using 指令
         /// </summary>
-        /// <param name="fields"></param>
+        /// <param name="symbols"></param>
         /// <returns></returns>
-        public static IEnumerable<string> GetUsingDirectiveTexts(this IEnumerable<IFieldSymbol> fields)
+        public static IEnumerable<string> GetUsingDirectiveTexts(this IEnumerable<ISymbol> symbols)
         {
             var usings = new HashSet<string>(StringComparer.Ordinal);
 
-            foreach (var field in fields)
+            foreach (var symbol in symbols)
             {
-                foreach (var syntaxReference in field.DeclaringSyntaxReferences)
+                foreach (var syntaxReference in symbol.DeclaringSyntaxReferences)
                 {
                     var root = syntaxReference.SyntaxTree.GetRoot();
                     foreach (var usingDirective in root.DescendantNodes().OfType<UsingDirectiveSyntax>())
