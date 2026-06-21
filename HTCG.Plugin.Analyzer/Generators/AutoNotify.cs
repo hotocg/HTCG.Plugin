@@ -21,6 +21,8 @@ namespace HTCG.Plugin.Analyzer
         INamedTypeSymbol? SysNotify,
         INamedTypeSymbol? PluginNotify,
         INamedTypeSymbol? ObservableAttr,
+        INamedTypeSymbol? NotifyPropertyChangedForAttr,
+        INamedTypeSymbol? NotifyCanExecuteChangedForAttr,
         INamedTypeSymbol? CommandAttr,
         INamedTypeSymbol? RelayCommandClass,      // 同步命令类
         INamedTypeSymbol? RelayCommandClassT,      // 同步命令类 泛型
@@ -50,6 +52,8 @@ namespace HTCG.Plugin.Analyzer
                 comp.GetTypeByMetadataName("System.ComponentModel.INotifyPropertyChanged"),
                 comp.GetTypeByMetadataName("HTCG.Plugin.Mvvm.ObservableObject"),
                 comp.GetTypeByMetadataName("HTCG.Plugin.Mvvm.ObservablePropertyAttribute"),
+                comp.GetTypeByMetadataName("HTCG.Plugin.Mvvm.NotifyPropertyChangedForAttribute"),
+                comp.GetTypeByMetadataName("HTCG.Plugin.Mvvm.NotifyCanExecuteChangedForAttribute"),
                 comp.GetTypeByMetadataName("HTCG.Plugin.Mvvm.RelayCommandAttribute"),
                 comp.GetTypeByMetadataName("HTCG.Plugin.Mvvm.RelayCommand"),
                 comp.GetTypeByMetadataName("HTCG.Plugin.Mvvm.RelayCommand`1"),
@@ -268,6 +272,8 @@ namespace HTCG.Plugin.Analyzer
                 var fieldName = field.Name;
                 var propName = fieldName.TrimStart('_').ToPascalCase();
                 var fieldType = field.Type.ToFullString();
+                var notifyPropertyNames = field.GetAttributeStringArguments(envSymbols.NotifyPropertyChangedForAttr).ToList();
+                var notifyCommandNames = field.GetAttributeStringArguments(envSymbols.NotifyCanExecuteChangedForAttr).ToList();
 
                 RoslynUtil.Log("Generate Property\t:", fieldType, fieldName, propName);
 
@@ -299,6 +305,14 @@ namespace HTCG.Plugin.Analyzer
                             builder.AppendLine($"On{propName}Changing({fieldName}, value);");
                             builder.AppendLine($"{fieldName} = value;");
                             builder.AppendLine($"OnPropertyChanged(nameof({propName}));");
+                            foreach (var propertyName in notifyPropertyNames)
+                            {
+                                builder.AppendLine($"OnPropertyChanged(nameof({propertyName}));");
+                            }
+                            foreach (var commandName in notifyCommandNames)
+                            {
+                                builder.AppendLine($"{commandName}.NotifyCanExecuteChanged();");
+                            }
                             builder.AppendLine($"On{propName}Changed({fieldName}, value);");
                         }
                     }

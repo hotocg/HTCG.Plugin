@@ -202,6 +202,60 @@ namespace HTCG.Plugin.Analyzer
         }
 
         /// <summary>
+        /// 获取指定特性的字符串构造参数
+        /// </summary>
+        /// <param name="symbol"></param>
+        /// <param name="attributeSymbol"></param>
+        /// <returns></returns>
+        public static IEnumerable<string> GetAttributeStringArguments(this ISymbol symbol, ISymbol? attributeSymbol)
+        {
+            if (attributeSymbol == null) yield break;
+
+            var names = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var attribute in symbol.GetAttributes())
+            {
+                if (!attribute.AttributeClass.Equal(attributeSymbol)) continue;
+
+                foreach (var argument in attribute.ConstructorArguments)
+                {
+                    foreach (var argumentValue in argument.EnumerateStringValues())
+                    {
+                        if (names.Add(argumentValue))
+                        {
+                            yield return argumentValue;
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// 枚举 TypedConstant 中的所有字符串值
+        /// </summary>
+        /// <param name="constant"></param>
+        /// <returns></returns>
+        private static IEnumerable<string> EnumerateStringValues(this TypedConstant constant)
+        {
+            if (constant.Kind == TypedConstantKind.Array)
+            {
+                foreach (var item in constant.Values)
+                {
+                    foreach (var itemValue in item.EnumerateStringValues())
+                    {
+                        yield return itemValue;
+                    }
+                }
+
+                yield break;
+            }
+
+            if (constant.Value is string stringValue && !string.IsNullOrWhiteSpace(stringValue))
+            {
+                yield return stringValue;
+            }
+        }
+
+        /// <summary>
         /// 获取成员声明上显式以 property 为目标的特性文本，例如 [property: JsonIgnore]
         /// </summary>
         /// <param name="symbol"></param>

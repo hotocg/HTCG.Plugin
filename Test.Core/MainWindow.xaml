@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:Test.Core"
         xmlns:p="http://schemas.htcgplugin/2025/xaml"
         mc:Ignorable="d"
-        Title="Test Core" Height="500" Width="500"
+        Title="Test Core" Height="500" Width="400"
         WindowStartupLocation="CenterScreen"
         >
     <Grid>
@@ -26,7 +26,10 @@
                     Command="{Binding AsyncTestCommand}"
                     CommandParameter="{Binding}"
                     />
+            <CheckBox IsChecked="{Binding CanExecute}" Content="允许保存"/>
+
             <TextBlock Text="{Binding Text}"/>
+            <TextBlock Text="{Binding TextLength}"/>
         </StackPanel>
     </Grid>
 </Window>

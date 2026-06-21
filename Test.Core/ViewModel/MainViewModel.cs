@@ -15,13 +15,20 @@ namespace Test.Core.ViewModel
     //[HTCG.Plugin.Timing]
     public partial class MainViewModel : ObservableObject
     {
-        private static MainViewModel _ins;
-        public static MainViewModel Ins => _ins == null ? _ins = new MainViewModel() : _ins;
+        private static MainViewModel? _ins;
+        public static MainViewModel Ins => _ins ??= new MainViewModel();
 
         public MainViewModel()
         {
             //Text = DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss:fffffff");
         }
+
+        /// <summary>
+        /// 是否可以执行
+        /// </summary>
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(AsyncTestCommand))]
+        private bool canExecute;
 
         /// <summary>
         /// 测试文本
@@ -30,7 +37,13 @@ namespace Test.Core.ViewModel
         [property: JsonProperty("_Text_")]
         [property: JsonIgnore]
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(TextLength))]
         private string text = "Hello World!";
+
+        /// <summary>
+        /// 字符串长度
+        /// </summary>
+        public int TextLength => Text?.Length ?? 0;
 
         /// <summary>
         /// 测试命令
@@ -39,7 +52,6 @@ namespace Test.Core.ViewModel
         [RelayCommand]
         private void Test(object arg)
         {
-            //Console.WriteLine($"MainViewModel: Hello World!");
             Text = DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss:fffffff") + $" | {arg}";
             //HTCG.Plugin.Temp.Test();
 
@@ -57,18 +69,19 @@ namespace Test.Core.ViewModel
             }
         }
 
-        private bool CanTest(object arg)
-        {
-            return true;
-        }
-
         [RelayCommand]
         private void GetCameraList(MainModel.Camera camera)
         {
 
         }
 
+        private bool CanAsyncTest(object arg) => CanExecute;
 
+        /// <summary>
+        /// Net 40 以上可用 async
+        /// </summary>
+        /// <param name="arg"></param>
+        /// <returns></returns>
 #if !NET20 && !NET30 && !NET35 && !NET40
         [RelayCommand(AllowConcurrentExecutions = true)]
         private async Task AsyncTest(object arg)
@@ -87,19 +100,7 @@ namespace Test.Core.ViewModel
             }).Start();
         }
 #endif
-
-
     }
-
-
-
-    public partial class CamereViewModel : ObservableObject
-    {
-        [ObservableProperty]
-        private string cameraName = "Camera1";
-
-    }
-
 
     public class MainModel
     {
@@ -108,9 +109,6 @@ namespace Test.Core.ViewModel
             public string Name { get; set; }
             public string Status { get; set; }
         }
-
-
-
     }
 
 

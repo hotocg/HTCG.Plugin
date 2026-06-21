@@ -30,6 +30,34 @@ namespace HTCG.Plugin.Mvvm
     }
 
     /// <summary>
+    /// 指定当某个字段变化时，通知哪些属性也发生了变化
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
+    public sealed class NotifyPropertyChangedForAttribute : Attribute
+    {
+        public string[] PropertyNames { get; }
+
+        public NotifyPropertyChangedForAttribute(params string[] propertyNames)
+        {
+            PropertyNames = propertyNames;
+        }
+    }
+
+    /// <summary>
+    /// 指定当某个字段变化时，刷新指定命令的 <see cref="ICommand.CanExecute"/> 状态
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
+    public sealed class NotifyCanExecuteChangedForAttribute : Attribute
+    {
+        public string[] CommandNames { get; }
+
+        public NotifyCanExecuteChangedForAttribute(params string[] commandNames)
+        {
+            CommandNames = commandNames;
+        }
+    }
+
+    /// <summary>
     /// 可观察属性特性，自动实现 OnPropertyChanged
     /// </summary>
     [AttributeUsage(AttributeTargets.Field, AllowMultiple = false)]
