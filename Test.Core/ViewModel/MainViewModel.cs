@@ -13,6 +13,7 @@ using System.Windows.Input;
 namespace Test.Core.ViewModel
 {
     //[HTCG.Plugin.Timing]
+    [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
     public partial class MainViewModel : ObservableObject
     {
         private static MainViewModel? _ins;
@@ -24,6 +25,21 @@ namespace Test.Core.ViewModel
         }
 
         /// <summary>
+        /// 测试文本
+        /// <code>Console.WriteLine(123)</code>
+        /// </summary>
+        [ObservableProperty]
+        [property: JsonProperty("TextProperty")]
+        [NotifyPropertyChangedFor(nameof(TextLength))]
+        private string text = "Hello World!";
+
+        /// <summary>
+        /// 字符串长度
+        /// </summary>
+        [property: JsonIgnore]
+        public int TextLength => Text.Length;
+
+        /// <summary>
         /// 是否可以执行
         /// </summary>
         [ObservableProperty]
@@ -31,28 +47,13 @@ namespace Test.Core.ViewModel
         private bool canExecute;
 
         /// <summary>
-        /// 测试文本
-        /// <code>Console.WriteLine(123)</code>
-        /// </summary>
-        [property: JsonProperty("_Text_")]
-        [property: JsonIgnore]
-        [ObservableProperty]
-        [NotifyPropertyChangedFor(nameof(TextLength))]
-        private string text = "Hello World!";
-
-        /// <summary>
-        /// 字符串长度
-        /// </summary>
-        public int TextLength => Text?.Length ?? 0;
-
-        /// <summary>
         /// 测试命令
         /// </summary>
-        [property: JsonIgnore]
         [RelayCommand]
         private void Test(object arg)
         {
-            Text = DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss:fffffff") + $" | {arg}";
+            Text = DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss:fffffff");
+            Text += $"\n{arg}";
             //HTCG.Plugin.Temp.Test();
 
             // param 可能是单个 RoutedEventArgs，或者是元组 (CommandParameter, RoutedEventArgs)
@@ -69,12 +70,6 @@ namespace Test.Core.ViewModel
             }
         }
 
-        [RelayCommand]
-        private void GetCameraList(MainModel.Camera camera)
-        {
-
-        }
-
         private bool CanAsyncTest(object arg) => CanExecute;
 
         /// <summary>
@@ -82,14 +77,15 @@ namespace Test.Core.ViewModel
         /// </summary>
         /// <param name="arg"></param>
         /// <returns></returns>
-#if !NET20 && !NET30 && !NET35 && !NET40
+        #if !NET20 && !NET30 && !NET35 && !NET40
         [RelayCommand(AllowConcurrentExecutions = true)]
         private async Task AsyncTest(object arg)
         {
             await Task.Delay(1000);
-            Text = DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss:fffffff") + $" | {arg}";
+            Text = DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss:fffffff");
+            Text += $"\n{JsonConvert.SerializeObject(arg, Formatting.Indented)}";
         }
-#else
+        #else
         [RelayCommand]
         private void AsyncTest(object arg)
         {
@@ -99,7 +95,7 @@ namespace Test.Core.ViewModel
                 Text = DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss:fffffff") + $" | {arg}";
             }).Start();
         }
-#endif
+        #endif
     }
 
     public class MainModel
