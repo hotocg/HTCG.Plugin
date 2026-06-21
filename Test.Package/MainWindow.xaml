@@ -6,27 +6,46 @@
         xmlns:local="clr-namespace:Test.Package"
         xmlns:p="http://schemas.htcgplugin/2025/xaml"
         mc:Ignorable="d"
-        Title="Test Package" Height="500" Width="500"
-        WindowStartupLocation="CenterScreen"
-        >
+            Title="Test Core" Width="400" Height="400"
+    WindowStartupLocation="CenterScreen"
+    >
+    <Window.Resources>
+        <Style TargetType="Button">
+            <Setter Property="Width" Value="150"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+        </Style>
+        <Style TargetType="CheckBox">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+    </Window.Resources>
     <Grid>
-        <StackPanel>
-            <!--<Button Content="Click me"
-                    Click="Button_Click"
-                    local:CommandBehavior.Command="{Binding TestCommand}"
-                    CommandParameter="{Binding}"
-                    />-->
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
-            <Button Content="Test" Width="120" Height="40"
-                    p:CommandBehavior.Event="Click"
-                    p:CommandBehavior.Command="{Binding TestCommand}"
-                    p:CommandBehavior.CommandParameter="Hello World"
-                    />
-            <Button Content="Async Test" Width="120" Height="40"
+        <StackPanel>
+            <Button Content="Test"
+                p:CommandBehavior.Event="Click"
+                p:CommandBehavior.Command="{Binding TestCommand}"
+                p:CommandBehavior.CommandParameter="Hello World"
+                />
+
+            <UniformGrid Rows="1">
+                <Button Content="Async Test"
                     Command="{Binding AsyncTestCommand}"
                     CommandParameter="{Binding}"
                     />
-            <TextBlock Text="{Binding Text}"/>
+                <CheckBox IsChecked="{Binding CanExecute}" Content="CanExecute"/>
+            </UniformGrid>
         </StackPanel>
+
+        <DockPanel Grid.Row="1">
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+                <TextBlock Text="TextLength: "/>
+                <TextBlock Text="{Binding TextLength}"/>
+            </StackPanel>
+            <TextBox AcceptsReturn="True" TextWrapping="Wrap" Text="{Binding Text}"/>
+        </DockPanel>
     </Grid>
 </Window>

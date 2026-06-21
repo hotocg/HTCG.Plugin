@@ -19,7 +19,7 @@
 
   <ItemGroup>
     <PackageReference Include="Costura.Fody" Version="4.0.0" />
-    <PackageReference Include="HTCG.Plugin.Fody" Version="1.1.3" />
+    <PackageReference Include="HTCG.Plugin.Fody" Version="1.1.8" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
   </ItemGroup>
   
