@@ -15,6 +15,71 @@ using Expr = System.Linq.Expressions.Expression;
 namespace HTCG.Plugin.Attachs
 {
     /// <summary>
+    /// 指定事件触发命令时传递给 <see cref="ICommand"/> 的参数内容
+    /// </summary>
+    public enum CommandPassMode
+    {
+        /// <summary>
+        /// 同时传递 CommandParameter 和事件参数；有 CommandParameter 时传递 <see cref="EventCommandArgs"/>，否则只传递事件参数
+        /// </summary>
+        Both,
+
+        /// <summary>
+        /// 只传递 XAML 中设置的 CommandParameter
+        /// </summary>
+        Parameter,
+
+        /// <summary>
+        /// 只传递事件参数
+        /// </summary>
+        EventArgs
+    }
+
+    /// <summary>
+    /// 事件命令参数，包含 XAML CommandParameter 和事件参数
+    /// </summary>
+    public sealed class EventCommandArgs : Tuple<object, RoutedEventArgs>
+    {
+        public EventCommandArgs(object parameter, RoutedEventArgs eventArgs) : base(parameter, eventArgs)
+        {
+        }
+
+        /// <summary>
+        /// XAML 中设置的 CommandParameter
+        /// </summary>
+        public object Parameter => Item1;
+
+        /// <summary>
+        /// 触发命令的事件参数
+        /// </summary>
+        public RoutedEventArgs EventArgs => Item2;
+
+        public bool TryGetParameter<T>(out T value)
+        {
+            if (Parameter is T typedValue)
+            {
+                value = typedValue;
+                return true;
+            }
+
+            value = default(T);
+            return false;
+        }
+
+        public bool TryGetEventArgs<T>(out T value) where T : RoutedEventArgs
+        {
+            if (EventArgs is T typedValue)
+            {
+                value = typedValue;
+                return true;
+            }
+
+            value = default(T);
+            return false;
+        }
+    }
+
+    /// <summary>
     /// 把任意 UIElement 的事件绑定到 ICommand，并传递 RoutedEventArgs 和可选参数
     /// </summary>
     public static class CommandBehavior
@@ -85,6 +150,27 @@ namespace HTCG.Plugin.Attachs
         public static object GetCommandParameter(DependencyObject element) => element.GetValue(CommandParameterProperty);
         #endregion
 
+        #region PassMode 附加属性
+        /// <summary>
+        /// 命令执行时传递给 ICommand 的参数模式
+        /// </summary>
+        public static readonly DependencyProperty PassModeProperty = DependencyProperty.RegisterAttached(
+            "PassMode",
+            typeof(CommandPassMode),
+            typeof(CommandBehavior),
+            new PropertyMetadata(CommandPassMode.Parameter)
+        );
+
+        /// <summary>
+        /// 设置参数传递模式
+        /// </summary>
+        public static void SetPassMode(DependencyObject element, CommandPassMode value) => element.SetValue(PassModeProperty, value);
+        /// <summary>
+        /// 获取参数传递模式
+        /// </summary>
+        public static CommandPassMode GetPassMode(DependencyObject element) => (CommandPassMode)element.GetValue(PassModeProperty);
+        #endregion
+
         /// <summary>
         /// 当 Event 属性改变时触发，添加或移除事件处理器
         /// </summary>
@@ -143,7 +229,7 @@ namespace HTCG.Plugin.Attachs
         }
 
         /// <summary>
-        /// 执行绑定到事件的命令。
+        /// 执行绑定到事件的命令
         /// </summary>
         private static void ExecuteCommand(UIElement uiElement, object eventArgs)
         {
@@ -151,18 +237,34 @@ namespace HTCG.Plugin.Attachs
             if (command == null) return;
 
             var parameter = GetCommandParameter(uiElement);
-            object finalParam = eventArgs;
-
-            if (parameter != null)
-            {
-                finalParam = eventArgs is RoutedEventArgs routedEventArgs
-                    ? new Tuple<object, RoutedEventArgs>(parameter, routedEventArgs)
-                    : new Tuple<object, object>(parameter, eventArgs);
-            }
+            var passMode = GetPassMode(uiElement);
+            var finalParam = GetFinalParameter(passMode, parameter, eventArgs);
 
             if (command.CanExecute(finalParam))
             {
                 command.Execute(finalParam);
+            }
+        }
+
+        /// <summary>
+        /// 获取最终参数
+        /// </summary>
+        private static object GetFinalParameter(CommandPassMode passMode, object parameter, object eventArgs)
+        {
+            switch (passMode)
+            {
+                case CommandPassMode.Parameter:
+                    return parameter;
+
+                case CommandPassMode.EventArgs:
+                    return eventArgs;
+
+                default:
+                    if (parameter == null) return eventArgs;
+
+                    return eventArgs is RoutedEventArgs routedEventArgs
+                        ? new EventCommandArgs(parameter, routedEventArgs)
+                        : new Tuple<object, object>(parameter, eventArgs);
             }
         }
 

@@ -1,4 +1,5 @@
-﻿using HTCG.Plugin.Mvvm;
+﻿using HTCG.Plugin.Attachs;
+using HTCG.Plugin.Mvvm;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -50,24 +51,10 @@ namespace Test.Core.ViewModel
         /// 测试命令
         /// </summary>
         [RelayCommand]
-        private void Test(object arg)
+        private void Test(string arg)
         {
             Text = DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss:fffffff");
             Text += $"\n{arg}";
-            //HTCG.Plugin.Temp.Test();
-
-            // param 可能是单个 RoutedEventArgs，或者是元组 (CommandParameter, RoutedEventArgs)
-            if (arg is Tuple<object, RoutedEventArgs> tuple)
-            {
-                var commandParam = tuple.Item1;
-                var e = tuple.Item2;
-                Text += $"\nCommandParameter: {commandParam}";
-                Text += $"\nEvent Source: {e.Source}";
-            }
-            else if (arg is RoutedEventArgs e)
-            {
-                Text += $"\nEvent Source: {e.Source}";
-            }
         }
 
         private bool CanAsyncTest(object arg) => CanExecute;
