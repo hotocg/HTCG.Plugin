@@ -6,6 +6,7 @@ using System.Windows;
 using System.Reflection;
 using System.Windows.Input;
 using System.Windows.Markup;
+using Expr = System.Linq.Expressions.Expression;
 
 [assembly: XmlnsPrefix("http://schemas.htcgplugin/2025/xaml", "plugin")]
 [assembly: XmlnsDefinition("http://schemas.htcgplugin/2025/xaml", "HTCG.Plugin.Attachs")]
@@ -107,19 +108,8 @@ namespace HTCG.Plugin.Attachs
             var eventInfo = uiElement.GetType().GetEvent(eventName, BindingFlags.Instance | BindingFlags.Public);
             if (eventInfo == null) return;
 
-            // 创建事件处理器
-            RoutedEventHandler handler = (s, e) =>
-            {
-                var command = GetCommand(uiElement);
-                if (command != null && command.CanExecute(e))
-                {
-                    var parameter = GetCommandParameter(uiElement);
-                    // 如果有 CommandParameter，则打包成元组 (CommandParameter, RoutedEventArgs)
-                    //object finalParam = parameter != null ? (parameter, e) : e;
-                    object finalParam = parameter != null ? new Tuple<object, RoutedEventArgs>(parameter, e) : e;
-                    command.Execute(finalParam);
-                }
-            };
+            var handler = CreateEventHandler(uiElement, eventInfo.EventHandlerType);
+            if (handler == null) return;
 
             // 添加事件处理器
             eventInfo.AddEventHandler(uiElement, handler);
@@ -131,6 +121,49 @@ namespace HTCG.Plugin.Attachs
                 _handlers[uiElement] = dict;
             }
             dict[eventName] = handler;
+        }
+
+        /// <summary>
+        /// 创建与目标事件委托签名匹配的处理器
+        /// </summary>
+        private static Delegate CreateEventHandler(UIElement uiElement, Type handlerType)
+        {
+            var invoke = handlerType.GetMethod("Invoke");
+            var parameters = invoke?.GetParameters();
+            if (parameters == null || parameters.Length != 2) return null;
+
+            var senderParameter = Expr.Parameter(parameters[0].ParameterType, "sender");
+            var argsParameter = Expr.Parameter(parameters[1].ParameterType, "args");
+            var call = Expr.Call(
+                typeof(CommandBehavior).GetMethod(nameof(ExecuteCommand), BindingFlags.Static | BindingFlags.NonPublic),
+                Expr.Constant(uiElement),
+                Expr.Convert(argsParameter, typeof(object)));
+
+            return Expr.Lambda(handlerType, call, senderParameter, argsParameter).Compile();
+        }
+
+        /// <summary>
+        /// 执行绑定到事件的命令。
+        /// </summary>
+        private static void ExecuteCommand(UIElement uiElement, object eventArgs)
+        {
+            var command = GetCommand(uiElement);
+            if (command == null) return;
+
+            var parameter = GetCommandParameter(uiElement);
+            object finalParam = eventArgs;
+
+            if (parameter != null)
+            {
+                finalParam = eventArgs is RoutedEventArgs routedEventArgs
+                    ? new Tuple<object, RoutedEventArgs>(parameter, routedEventArgs)
+                    : new Tuple<object, object>(parameter, eventArgs);
+            }
+
+            if (command.CanExecute(finalParam))
+            {
+                command.Execute(finalParam);
+            }
         }
 
         /// <summary>
