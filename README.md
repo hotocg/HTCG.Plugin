@@ -15,11 +15,14 @@
     </Grid.RowDefinitions>
 
     <StackPanel>
-        <Button Content="Test"
-                p:CommandBehavior.Event="Click"
-                p:CommandBehavior.Command="{Binding TestCommand}"
-                p:CommandBehavior.CommandParameter="Hello World"
-                />
+        <Label p:CommandBehavior.Event="MouseDoubleClick"
+               p:CommandBehavior.Command="{Binding TestCommand}"
+               p:CommandBehavior.CommandParameter="Hello World"
+               Background="LightGray" BorderThickness="1" BorderBrush="Gray"
+               Width="150" HorizontalAlignment="Left" HorizontalContentAlignment="Center"
+               >
+            <TextBlock Text="Test"/>
+        </Label>
 
         <UniformGrid Rows="1">
             <Button Content="Async Test"
