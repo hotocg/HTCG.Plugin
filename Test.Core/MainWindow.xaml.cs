@@ -21,22 +21,10 @@ namespace Test.Core
     /// </summary>
     public partial class MainWindow : Window
     {
-        public static MainWindow Instance;
         public MainWindow()
         {
             InitializeComponent();
-            Instance = this;
-            this.DataContext = MainViewModel.Ins;
+            this.DataContext = new MainViewModel(this);
         }
-
-        private void Button_Click(object sender, RoutedEventArgs e)
-        {
-            //MainViewModel.Ins.Text = DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss:fffffff");
-            //MainViewModel.Ins.Test();
-            //HTCG.Plugin.Temp.Test();
-            //HTCG.Plugin.Attachs.CommandBehavior
-        }
-
     }
-
 }

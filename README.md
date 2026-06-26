@@ -56,12 +56,11 @@ namespace Test.ViewModel
     [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
     public partial class MainViewModel : ObservableObject
     {
-        private static MainViewModel? _ins;
-        public static MainViewModel Ins => _ins ??= new MainViewModel();
+        private Window win;
 
-        public MainViewModel()
+        public MainViewModel(Window window)
         {
-            
+            win = window;
         }
 
         /// <summary>
@@ -74,7 +73,7 @@ namespace Test.ViewModel
         private string text = "Hello World!";
         partial void OnTextChanged(string value)
         {
-            MainWindow.Instance.Title = value;
+            win.Title = value;
         }
 
         /// <summary>
