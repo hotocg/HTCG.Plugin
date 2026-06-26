@@ -22,9 +22,11 @@ namespace Test.Package
     /// </summary>
     public partial class MainWindow : Window
     {
+        public static MainWindow Instance;
         public MainWindow()
         {
             InitializeComponent();
+            Instance = this;
             this.DataContext = MainViewModel.Ins;
         }
 

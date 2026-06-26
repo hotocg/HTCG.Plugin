@@ -33,6 +33,10 @@ namespace Test.Core.ViewModel
         [property: JsonProperty("TextProperty")]
         [NotifyPropertyChangedFor(nameof(TextLength))]
         private string text = "Hello World!";
+        partial void OnTextChanged(string value)
+        {
+            MainWindow.Instance.Title = value;
+        }
 
         /// <summary>
         /// 字符串长度
@@ -84,15 +88,4 @@ namespace Test.Core.ViewModel
         }
         #endif
     }
-
-    public class MainModel
-    {
-        public class Camera
-        {
-            public string Name { get; set; }
-            public string Status { get; set; }
-        }
-    }
-
-
 }

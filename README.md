@@ -72,6 +72,10 @@ namespace Test.ViewModel
         [property: JsonProperty("TextProperty")]
         [NotifyPropertyChangedFor(nameof(TextLength))]
         private string text = "Hello World!";
+        partial void OnTextChanged(string value)
+        {
+            MainWindow.Instance.Title = value;
+        }
 
         /// <summary>
         /// 字符串长度

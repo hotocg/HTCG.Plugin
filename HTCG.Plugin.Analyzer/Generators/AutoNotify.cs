@@ -313,16 +313,16 @@ namespace HTCG.Plugin.Analyzer
                             {
                                 builder.AppendLine($"{commandName}.NotifyCanExecuteChanged();");
                             }
-                            builder.AppendLine($"On{propName}Changed({fieldName}, value);");
+                            builder.AppendLine($"On{propName}Changed(value);");
                         }
                     }
                 }
 
                 // 部分方法声明
-                builder.AppendLine($"/// <summary> <see cref=\"{propName}\"/> 更改前</summary>");
+                builder.AppendLine($"/// <summary> <see cref=\"{propName}\"/> 更改时</summary>");
                 builder.AppendLine($"partial void On{propName}Changing({fieldType} oldValue, {fieldType} newValue);");
                 builder.AppendLine($"/// <summary> <see cref=\"{propName}\"/> 更改后</summary>");
-                builder.AppendLine($"partial void On{propName}Changed({fieldType} oldValue, {fieldType} newValue);");
+                builder.AppendLine($"partial void On{propName}Changed({fieldType} value);");
                 builder.AppendLine();
             }
 
